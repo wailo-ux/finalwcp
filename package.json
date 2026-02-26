@@ -9,10 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "apexcharts": "^5.6.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "mqtt": "^5.15.0",
+    "mssql": "^12.2.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "vue3-apexcharts": "^1.10.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

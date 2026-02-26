@@ -1,44 +1,44 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const formData = reactive({
-  username: '',
-  password: '',
-  keepLoggedIn: false,
-})
-
+const username = ref('')
+const password = ref('')
 const showPassword = ref(false)
+const keepLoggedIn = ref(false)
 const errorMessage = ref('')
 const isLoading = ref(false)
 
-const submit = async () => {
-  if (!formData.username || !formData.password) {
+const handleLogin = async () => {
+  if (!username.value || !password.value) {
     errorMessage.value = "Username dan Password wajib diisi!"
     return
   }
 
   isLoading.value = true
   errorMessage.value = ''
-
+  
   try {
-    const req = await fetch('http://localhost/wcp_top/api_auth.php?action=login', {
+    const response = await fetch('http://localhost:3000/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
     })
-    const res = await req.json()
 
-    if (res.status === 'success') {
-      alert(`Halo, ${res.data.full_name}!`) // Pengganti VaToast sementara
-      localStorage.setItem('user', JSON.stringify(res.data))
+    const result = await response.json()
+
+    if (response.ok && result.status === 'success') {
+      localStorage.setItem('user', JSON.stringify(result.data))
       router.push({ name: 'dashboard' })
     } else {
-      errorMessage.value = res.message
+      errorMessage.value = result.message || 'Login Gagal'
     }
-  } catch (e) {
-    errorMessage.value = "Gagal koneksi ke server"
+  } catch (err) {
+    errorMessage.value = 'Tidak dapat terhubung ke server API'
   } finally {
     isLoading.value = false
   }
@@ -46,11 +46,14 @@ const submit = async () => {
 </script>
 
 <template>
-  <form @submit.prevent="submit" class="flex flex-col gap-4">
+  <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
     <div class="mb-4">
       <h1 class="font-bold text-3xl text-gray-800 mb-2">Log in</h1>
       <p class="text-sm text-gray-500">
-        Belum punya akun? <a href="#" class="font-bold text-blue-600 hover:underline">Daftar disini</a>
+        Belum punya akun? 
+        <router-link :to="{ name: 'register' }" class="font-bold text-blue-600 hover:underline">
+          Daftar disini
+        </router-link>
       </p>
     </div>
 
@@ -61,7 +64,7 @@ const submit = async () => {
     <div class="flex flex-col gap-1">
       <label class="text-sm font-semibold text-gray-700">Username</label>
       <input 
-        v-model="formData.username" 
+        v-model="username" 
         type="text" 
         placeholder="Masukkan username"
         class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -72,7 +75,7 @@ const submit = async () => {
       <label class="text-sm font-semibold text-gray-700">Password</label>
       <div class="relative w-full">
         <input 
-          v-model="formData.password" 
+          v-model="password" 
           :type="showPassword ? 'text' : 'password'" 
           placeholder="Masukkan password"
           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -89,10 +92,12 @@ const submit = async () => {
 
     <div class="flex justify-between items-center mt-2">
       <label class="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" v-model="formData.keepLoggedIn" class="w-4 h-4 rounded border-gray-300 text-blue-600" />
+        <input type="checkbox" v-model="keepLoggedIn" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
         <span class="text-sm text-gray-600">Ingat Saya</span>
       </label>
-      <a href="#" class="text-sm font-semibold text-blue-600 hover:underline">Lupa Password?</a>
+      <router-link :to="{ name: 'forgot-password' }" class="text-sm font-semibold text-blue-600 hover:underline">
+        Lupa Password?
+      </router-link>
     </div>
 
     <button 
